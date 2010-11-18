@@ -14,15 +14,18 @@ class ProcedureFormFilter extends BaseProcedureFormFilter
   {
     $this->disableLocalCSRFProtection();
 
-    $this->setWidget('pendientes', new sfWidgetFormInputCheckbox());
+    $this->setWidget('pendientes', new sfWidgetFormInputHidden());
     $this->setValidator('pendientes', new sfValidatorString(array('required' => false)));
+    
+    $this->setWidget('autorizar', new sfWidgetFormInputHidden());
+    $this->setValidator('autorizar', new sfValidatorString(array('required' => false)));
 
     $this->setWidget('creator', new sfWidgetFormFilterInput(array('with_empty' => false)));
-    $this->setValidator('creator', new sfValidatorPass(array('required' => false)));
+    $this->setValidator('creator', new sfValidatorString(array('required' => false)));
 
     $this->setWidget('state', new sfWidgetFormDoctrineChoice(array('model' => 'RevisionState', 'add_empty' => true)));
     $this->setValidator('state', new sfValidatorDoctrineChoice(array('required' => false, 'model' => 'RevisionState', 'column' => 'id')));
-
+    
     $this->setWidget('created_at', new sfWidgetFormFilterDate(array(
             'from_date' => new sfWidgetFormDate(array( 'format'=> '%day%/%month%/%year%')),
             'to_date' => new sfWidgetFormDate(array( 'format'=> '%day%/%month%/%year%')),
@@ -42,6 +45,7 @@ class ProcedureFormFilter extends BaseProcedureFormFilter
     $fields['creator'] = 'custom';
     $fields['state'] = 'custom';
     $fields['pendientes'] = 'custom';
+    $fields['autorizar'] = 'custom';
     return $fields;
   }
 
@@ -80,20 +84,67 @@ public function addPendientesColumnQuery($query, $field, $value)
   {
     $single = sfContext::getInstance();
     $user = $single->getUser()->getGroups();
-    $sql = "";
-    foreach ($user as $u) $sql .= ' OR "'.$u.'"';
-      
-   /*   echo '<p>$user: <b>'.$sql.'</b></p>';
-    die();*/
+    $sql = "(";
+    $sql2 = "(";
+
+    foreach ($user as $u) {
+      $sql .= ' i.group_id="'.$u->getId().'" OR ';
+      $sql2 .= ' i2.group_id="'.$u->getId().'" OR ';
+    }
+     
+    $sql = rtrim($sql, ' OR ');
+    $sql .= ")";
+    $sql2 = rtrim($sql2, ' OR ');
+    $sql2 .= ")";
 
 
     $text = $value['text'];
     if($text){
-      $query->leftJoin($query->getRootAlias().'.Revisions rv')->andWhere('(
-         rv.revision_state_id <> ?
-         AND rv.id = (SELECT MAX(rv2.id) FROM revision rv2 WHERE rv2.procedure_id = '.$query->getRootAlias().'.id )
-      )', array(4));
+
+    $query->leftJoin($query->getRootAlias().'.Revisions rv')
+            ->andWhere('(rv.revision_state_id <> ?
+         AND rv.id = (SELECT MAX(rv3.id) FROM revision rv3 WHERE rv3.procedure_id = '.$query->getRootAlias().'.id )
+         )', array(4))
+            ->andWhere( 'EXISTS (SELECT r1.id FROM revision r1 JOIN r1.RevisionItem ri1 JOIN ri1.Item i
+            WHERE i.title="Cierre parcial"
+            AND '.$sql.'
+            AND r1.procedure_id='.$query->getRootAlias().'.id
+            AND r1.id = (SELECT MAX(r2.id) FROM revision r2 INNER JOIN r2.RevisionItem
+            WHERE r2.procedure_id = '.$query->getRootAlias().'.id)
+            AND ri1.state IN ("error", "sc"))');
+           // ->andWhere($sql);
+                    /*'rv.id=(SELECT MAX(rv2.id) FROM revision rv2 JOIN rv2.RevisionItem ri2 JOIN ri2.Item i2
+              WHERE rv2.procedure_id = '.$query->getRootAlias().'.id
+              AND i2.title="Cierre Parcial" AND ('.$sql2.') AND (ri2.state="error" OR ri2.state="sc"))')
+            /*->andWhere($sql)
+            ->andWhere('ri.state="error" OR ri.state="sc"')
+            ->andWhere('i.title="Cierre Parcial"')*/
     }
     return $query;
   }
+
+  public function addAutorizarColumnQuery($query, $field, $value)
+  {
+    $text = $value['text'];
+    if($text){
+
+    $query->leftJoin($query->getRootAlias().'.Revisions rv')
+            ->leftJoin('rv.RevisionItem ri')
+            ->leftJoin('ri.Item i')
+            ->andWhere('(rv.revision_state_id = ?
+         AND rv.id = (SELECT MAX(rv3.id) FROM revision rv3 WHERE rv3.procedure_id = '.$query->getRootAlias().'.id )
+         )', array(7))
+            ->andWhere('i.title="Cierre Parcial"')
+            ->andWhere('NOT EXISTS (
+              SELECT rv2.id FROM revision rv2 JOIN rv2.RevisionItem ri2 JOIN ri2.Item i2
+              WHERE i2.title="Cierre parcial"
+              AND ri2.revision_id= rv.id
+              AND ri2.state IN ("error", "sc")
+                           )');
+
+  
+    }
+    return $query;
+  }
+
 }

@@ -451,12 +451,12 @@ table.items_control tbody tr td.item_error span {
   margin: 0 auto;
 }
 table.items_control tbody tr td.item_nc {
-  background-color: #eeeeee;
+  background-color: #feffaf;
   color: #444444;
   text-align: center;
 }
 table.items_control tbody tr td.item_nc span {
-  background: #eeeeee url('../../images/form.png') no-repeat -60px -40px;
+  background: #feffaf url('../../images/form.png') no-repeat -100px -40px;
   display: block;
   width: 20px;
   height: 20px;

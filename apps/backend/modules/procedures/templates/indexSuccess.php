@@ -16,8 +16,8 @@
     <ul class="menu">
       <li class="filters"><a class="opt_filter"><?php echo __('Filter'); ?></a></li>
       <li><?php echo link_to(__('Pendientes', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => 'procedure_filters[pendientes]=1', 'method' => 'post')) ?></li>
-      <li><?php echo link_to(__('Nuevos', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => 'procedure_filters[state]=5,procedure_filters[revisions_count]=2', 'method' => 'post')) ?></li>
-      <li><?php echo link_to(__('Para Autorizar', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => 'procedure_filters[state]=7', 'method' => 'post')) ?></li>
+      <li><?php echo link_to(__('Nuevos', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => 'procedure_filters[state]=5', 'method' => 'post')) ?></li>
+      <li><?php echo link_to(__('Para Autorizar', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => 'procedure_filters[autorizar]=1', 'method' => 'post')) ?></li>
       <li><?php echo link_to(__('Autorizados', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => 'procedure_filters[state]=4', 'method' => 'post')) ?></li>
       <li><?php echo link_to(__('Quitar filtros', array(), 'sf_admin'), 'procedure_collection', array('action' => 'filter'), array('query_string' => '_reset', 'method' => 'post')) ?></li>
     </ul>

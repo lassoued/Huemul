@@ -209,7 +209,8 @@ class Revision extends BaseRevision {
        $item = $cierre->get('id');
        if($revision = Doctrine::getTable('RevisionItem')->findOneByItemIdAndRevisionId($item,  $this->get('id'))){
 
-       if ($revision->getState() != 'nc') return $revision->getState();
+       //if ($revision->getState() != 'nc')
+       return $revision->getState();
     }
     
     }

@@ -37,6 +37,8 @@ class proceduresActions extends autoProceduresActions {
     $this->filters = $this->configuration->getFilterForm($this->getFilters());
     
     $this->filters->bind($request->getParameter($this->filters->getName()));
+
+
     if ($this->filters->isValid())
     {
       $this->setFilters($this->filters->getValues());
