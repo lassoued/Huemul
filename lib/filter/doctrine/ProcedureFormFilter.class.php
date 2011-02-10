@@ -14,14 +14,15 @@ class ProcedureFormFilter extends BaseProcedureFormFilter
   {
     $this->disableLocalCSRFProtection();
 
+    $this->setWidget('creator', new sfWidgetFormFilterInput());
+    $this->setValidator('creator', new sfValidatorPass(array('required' => false)));
+
     $this->setWidget('pendientes', new sfWidgetFormInputHidden());
     $this->setValidator('pendientes', new sfValidatorString(array('required' => false)));
     
     $this->setWidget('autorizar', new sfWidgetFormInputHidden());
     $this->setValidator('autorizar', new sfValidatorString(array('required' => false)));
 
-    $this->setWidget('creator', new sfWidgetFormFilterInput(array('with_empty' => false)));
-    $this->setValidator('creator', new sfValidatorString(array('required' => false)));
 
     $this->setWidget('state', new sfWidgetFormDoctrineChoice(array('model' => 'RevisionState', 'add_empty' => true)));
     $this->setValidator('state', new sfValidatorDoctrineChoice(array('required' => false, 'model' => 'RevisionState', 'column' => 'id')));
@@ -41,14 +42,14 @@ class ProcedureFormFilter extends BaseProcedureFormFilter
 
    public function getFields()
   {
-    $fields = parent::getFields();
     $fields['creator'] = 'custom';
     $fields['state'] = 'custom';
     $fields['pendientes'] = 'custom';
     $fields['autorizar'] = 'custom';
+    $fields = parent::getFields();
     return $fields;
   }
-
+ 
   public function addCreatorColumnQuery($query, $field, $value)
   {
     $text = $value['text'];
@@ -64,10 +65,11 @@ class ProcedureFormFilter extends BaseProcedureFormFilter
       OR u.username LIKE ?
       OR CONCAT(p.first_name, " ", p.last_name) LIKE ?
       )', array("%$text%", "%$text%", "%$text%", "%$text%"));
-   
+
     }
     return $query;
   }
+
   public function addStateColumnQuery($query, $field, $value)
   {
     //SELECT * FROM _procedure p JOIN (SELECT max(number), revision_state_id, procedure_id FROM revision) j ON j.procedure_id = p.id where j.revision_state_id=1
@@ -91,7 +93,7 @@ public function addPendientesColumnQuery($query, $field, $value)
       $sql .= ' i.group_id="'.$u->getId().'" OR ';
       $sql2 .= ' i2.group_id="'.$u->getId().'" OR ';
     }
-     
+
     $sql = rtrim($sql, ' OR ');
     $sql .= ")";
     $sql2 = rtrim($sql2, ' OR ');
@@ -128,6 +130,7 @@ public function addPendientesColumnQuery($query, $field, $value)
     $text = $value['text'];
     if($text){
 
+
     $query->leftJoin($query->getRootAlias().'.Revisions rv')
             ->leftJoin('rv.RevisionItem ri')
             ->leftJoin('ri.Item i')
@@ -142,7 +145,7 @@ public function addPendientesColumnQuery($query, $field, $value)
               AND ri2.state IN ("error", "sc")
                            )');
 
-  
+
     }
     return $query;
   }

@@ -1,3 +1,12 @@
+procedure_pipo:
+  class: sfDoctrineRouteCollection
+  options:
+    model:                Procedure
+    module:               pipo
+    prefix_path:          /pipo
+    column:               id
+    with_wildcard_routes: true
+
 userProcedure:
   url:   /userProcedure
   param: { module: userProcedure, action: index }
